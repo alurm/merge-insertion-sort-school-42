@@ -268,7 +268,86 @@ void merge_insert_sort_helper_pairs(indexed *numbers, int size, int depth, bool 
 }
 #endif
 
+int lookup(pair<int, int> *pairs, int key, int size) {
+	for (int i = 0; i < size; i++) {
+		pair<int, int> pair = pairs[i];
+		int key_in_pair = pair.first;
+		int value_in_pair = pair.second;
+		if (key_in_pair == key)
+			return value_in_pair;
+	}
+	assert(0);
+}
+
 struct merge_insert_sort_helper_arguments { int *numbers; int size; int depth; bool debug; };
+
+struct merge_insert_binary_insert_arguments {
+	int *numbers; int size; int depth; bool debug;
+	int *more;
+	//map<int, int> m;
+	pair<int, int> *pairs;
+	int the_odd;
+	bool odd;
+	int half;
+};
+
+void merge_insert_binary_insert(
+	merge_insert_binary_insert_arguments _
+) {
+	int *numbers = _.numbers; int size = _.size; int depth = _.depth; bool debug = _.debug; int *more = _.more; /*map<int, int> m = _.m;*/ int the_odd = _.the_odd; bool odd = _.odd; int half = _.half; pair<int, int> *pairs = _.pairs;
+
+	/*// This is incorrect because we don't know what this is paired to.
+	numbers[0] = less[0];
+
+	for (int i = 0; i < half; i++) {
+		numbers[i + 1] = more[i];
+	}
+
+	for (int i = 0; i < half + odd; i++) {
+		sorted_insert(numbers, half + 1 + i, less[i]);
+	}*/
+
+	/*
+	for (int i = 0; i < half; i++) numbers[i] = more[i];
+	for (int i = 0; i < half; i++) sorted_insert(numbers, half + i, less[i]);
+	if (odd) sorted_insert(numbers, half * 2, the_odd);
+	*/
+
+	//numbers[0] = m[more[0]];
+	numbers[0] = lookup(pairs, more[0], half);
+	for (int i = 0; i < half; i++) numbers[1 + i] = more[i];
+
+	//for (int i = 0; i < half - 1; i++) sorted_insert(numbers, 1 + half + i, m[more[1 + i]]);
+
+	int goal = 1;
+	int before = 0;
+	int group_size = 0;
+
+	int offset = 0;
+	if (debug) indent(depth) << "begin" << endl;
+	while (offset < half - 1) {
+		goal *= 2; before = group_size; group_size = goal - before;
+
+		int shift = (half - 1) - (offset + group_size);
+		if (shift > 0) shift = 0;
+		if (debug) indent(depth) << "group size: " << group_size << endl;
+		for (int i = 0; i < group_size && (offset + i < half - 1); i++) {
+			//int final_index = 1 + offset + i;
+			int final_index = 1 + offset + (group_size - 1 - i) + shift;
+			if (debug) indent(depth) << final_index << endl;
+			sorted_insert(
+				numbers,
+				1 + half + offset + i,
+				//m[more[final_index]]
+				lookup(pairs, more[final_index], half)
+			);
+		}
+		offset += group_size;
+	}
+	if (debug) indent(depth) << "end" << endl;
+	
+	if (odd) sorted_insert(numbers, half * 2, the_odd);
+}
 
 void merge_insert_sort_helper(merge_insert_sort_helper_arguments _) {
 	int *numbers = _.numbers; int size = _.size; int depth = _.depth; bool debug = _.debug;
@@ -312,14 +391,22 @@ void merge_insert_sort_helper(merge_insert_sort_helper_arguments _) {
 	}
 
 	// Assume that there are no duplicate numbers.
-	map<int, int> m;
+	//map<int, int> m;
+	pair<int, int> *pairs = new pair<int, int>[half];
 	for (int i = 0; i < half; i++) {
-		m[more[i]] = less[i];
+		//m[more[i]] = less[i];
+		pairs[i] = make_pair(more[i], less[i]);
 	}
 
 	if (debug) {
 		indent(depth) << "less" << endl; for (int i = 0; i < half + odd; i++) indent(depth + 1) << less[i] << endl;
 		indent(depth) << "more" << endl; for (int i = 0; i < half; i++) indent(depth + 1) << more[i] << endl;
+
+		indent(depth) << "pairs" << endl;
+		for (int i = 0; i < half; i++) {
+			indent(depth + 1) << "key: " << pairs[i].first << endl;
+			indent(depth + 1) << "value: " << pairs[i].second << endl;
+		}
 	}
 
 	// Information about pairings is lost here. May be preserved by storing indicies with the numbers.
@@ -330,58 +417,22 @@ void merge_insert_sort_helper(merge_insert_sort_helper_arguments _) {
 		.debug = debug
 	});
 
-	/*// This is incorrect because we don't know what this is paired to.
-	numbers[0] = less[0];
-
-	for (int i = 0; i < half; i++) {
-		numbers[i + 1] = more[i];
-	}
-
-	for (int i = 0; i < half + odd; i++) {
-		sorted_insert(numbers, half + 1 + i, less[i]);
-	}*/
-
-	/*
-	for (int i = 0; i < half; i++) numbers[i] = more[i];
-	for (int i = 0; i < half; i++) sorted_insert(numbers, half + i, less[i]);
-	if (odd) sorted_insert(numbers, half * 2, the_odd);
-	*/
-
-	numbers[0] = m[more[0]];
-	for (int i = 0; i < half; i++) numbers[1 + i] = more[i];
-
-	//for (int i = 0; i < half - 1; i++) sorted_insert(numbers, 1 + half + i, m[more[1 + i]]);
-
-	int goal = 1;
-	int before = 0;
-	int group_size = 0;
-
-	int offset = 0;
-	if (debug) indent(depth) << "begin" << endl;
-	while (offset < half - 1) {
-		goal *= 2; before = group_size; group_size = goal - before;
-
-		int shift = (half - 1) - (offset + group_size);
-		if (shift > 0) shift = 0;
-		if (debug) indent(depth) << "group size: " << group_size << endl;
-		for (int i = 0; i < group_size && (offset + i < half - 1); i++) {
-			//int final_index = 1 + offset + i;
-			int final_index = 1 + offset + (group_size - 1 - i) + shift;
-			if (debug) indent(depth) << final_index << endl;
-			sorted_insert(
-				numbers,
-				1 + half + offset + i,
-				m[more[final_index]]
-			);
-		}
-		offset += group_size;
-	}
-	if (debug) indent(depth) << "end" << endl;
-	
-	if (odd) sorted_insert(numbers, half * 2, the_odd);
+	merge_insert_binary_insert((merge_insert_binary_insert_arguments){
+		.numbers = numbers,
+		.size = size,
+		.depth = depth,
+		.debug = debug,
+		.more = more,
+		//.m = m,
+		.pairs = pairs,
+		.the_odd = the_odd,
+		.odd = odd,
+		.half = half,
+	});
 
 	delete[] less;
 	delete[] more;
+	delete[] pairs;
 }
 
 void merge_insert_sort(int *numbers, int size) {
@@ -389,7 +440,7 @@ void merge_insert_sort(int *numbers, int size) {
 		.numbers = numbers,
 		.size = size,
 		.depth = 0,
-		.debug = 1,
+		.debug = 0,
 	});
 }
 
@@ -423,6 +474,20 @@ void test_merge_insert_sort_3() {
 	}
 }
 
+void test_merge_insert_sort_4() {
+	enum {
+		size = 10000,
+	};
+	int numbers[size];// = {4, 3, 2, 1};
+	for (int i = 0; i < size; i++) numbers[i] = i;
+	//int size = sizeof numbers / sizeof *numbers;
+	//indent(0) << "numbers" << endl; for (int i = 0; i < size; i++) { indent(1) << numbers[i] << endl; }
+	merge_insert_sort(numbers, size);
+	for (int i = 0; i < size; i++) {
+		cout << numbers[i] << endl;
+	}
+}
+
 void test_multimap() {
 	typedef multimap<int, int> t;
 
@@ -448,5 +513,5 @@ void test_multimap() {
 }
 
 int main() {
-	test_multimap();
+	test_merge_insert_sort_4();
 }
