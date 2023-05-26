@@ -1,5 +1,5 @@
 .PHONY : all
 
 all :
-	c++ -std=c++98 -o main merge_insert_sort.cpp
+	c++ -std=c++98 -o main merge_insert_sort.cpp tests.cpp
 	./main
