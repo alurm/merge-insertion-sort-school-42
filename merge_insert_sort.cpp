@@ -24,7 +24,7 @@ void insert(int *numbers, int size, int x) {
 	for (int i = 0; i < size; i++) {
 		before = numbers[i];
 		numbers[i] = after;
-		
+
 		after = before;
 	}
 	numbers[size] = after;
@@ -69,51 +69,18 @@ void merge_insert_binary_insert(
 	int half = _.half;
 	pair<int, int> *pairs = _.pairs;
 
-	/* Simple, but not optimal. Optimal version below.
 	for (int i = 0; i < half; i++) numbers[i] = more[i];
-	for (int i = 0; i < half; i++) sorted_insert(numbers, half + i, less[i]);
-	if (odd) sorted_insert(numbers, half * 2, the_odd);
-	*/
 
-	// Need to insert first paired to least in more.
-	// Following is incorrect because we don't know what less[0] is not paired to more[0] after sorting more.
-	// Correct version is after this.
-	//numbers[0] = less[0];
+	limited_generator g(half);
 
-	//numbers[0] = m[more[0]];
-	numbers[0] = lookup(pairs, more[0], half);
-
-	for (int i = 0; i < half; i++) numbers[1 + i] = more[i]; // Copy more.
-
-	// The tricky part.
-
-	int goal = 1;
-	int before = 0;
-	int group_size = 0;
-
-	int offset = 0;
-	if (debug) indent(depth) << "begin" << endl;
-	while (offset < half - 1) {
-		goal *= 2; before = group_size; group_size = goal - before;
-
-		int shift = (half - 1) - (offset + group_size);
-		if (shift > 0) shift = 0;
-		if (debug) indent(depth) << "group size: " << group_size << endl;
-		for (int i = 0; i < group_size && (offset + i < half - 1); i++) {
-			//int final_index = 1 + offset + i;
-			int final_index = 1 + offset + (group_size - 1 - i) + shift;
-			if (debug) indent(depth) << final_index << endl;
-			sorted_insert(
-				numbers,
-				1 + half + offset + i,
-				//m[more[final_index]]
-				lookup(pairs, more[final_index], half)
-			);
-		}
-		offset += group_size;
+	for (int count = 0; ; count++) {
+		optional<int> o = g();
+		if (!o.present) break;
+		int index = o.value;
+		int element = lookup(pairs, more[index], half);
+		sorted_insert(numbers, half + count, element);
 	}
-	if (debug) indent(depth) << "end" << endl;
-	
+
 	if (odd) sorted_insert(numbers, half * 2, the_odd);
 }
 
@@ -126,7 +93,7 @@ void merge_insert_sort_helper(merge_insert_sort_helper_arguments _) {
 	if (debug) { indent(depth) << "begin" << endl; }
 
 	if (size == 0 || size == 1) return;
-	
+
 	int half = size / 2; // Verify that rounds down.
 
 	bool odd = (size % 2) == 1; int the_odd; if (odd) the_odd = numbers[size - 1];
@@ -213,6 +180,6 @@ void merge_insert_sort(int *numbers, int size) {
 		.numbers = numbers,
 		.size = size,
 		.depth = 0,
-		.debug = 0,
+		.debug = 1,
 	});
 }

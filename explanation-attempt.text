@@ -1,0 +1,41 @@
+2 2 6 10 22
+
+2: 3 2
+2: 5 4
+6: 11 10 9 8 7 6
+10: 21 20 19 18 17 16 15 14 13 12
+
+The largest index that would require two comparisons would have 0 elements before it.
+It's b1, since we have already added zero element.
+1 (largest index) - 0 (for ones before it) + 0 (extra added) = 1 (2^2 - 1)
+Add all from b1 up to b1.
+
+The largest index that would require two comparisons would have 1 elements before it.
+It's b1, since we have already added one element.
+1 (largest index) - 1 (for ones before it) + 1 (extra added) = 1 (2^2 - 1)
+Add all from b1 up to b1. (Not added, since b1 has already been added.)
+
+The largest index that would require two comparisons would have 3 elements before it.
+It's b3, since we have already added one element.
+3 (largest index) - 1 (for ones before it) + 1 (extra added) = 3 (2^2 - 1)
+Add all from b3 up to b2.
+
+The largest index that would require three comparisons would have 7 elements before it.
+It's b5, since we have have already added three elements.
+5 (largest index) - 1 (for ones before it) + 3 (extra added) = 7 (2^3 - 1)
+Add all from b5 up to b4.
+
+The largest index that would require three comparisons would have 15 elements before it.
+It's b11, since we have have already added five elements.
+11 (largest index) - 1 (for ones before it) + 5 (extra added) = 15 (2^3 - 1)
+Add all from b11 up to b6.
+
+(largest index) - 1 (for ones before it) + (extra added) = 2^(comparisons) - 1
+
+Extra added should be remembered.
+The largest previous one should be remembered.
+
+(largest index)
+	= (2^(comparisons) - 1)
+	- (extra added)
+	+ 1 (for ones before it)

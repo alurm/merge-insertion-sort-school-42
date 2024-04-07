@@ -216,6 +216,17 @@ void test_multimap() {
 	}
 }
 
+void test_generator() {
+	limited_generator g(10);
+
+	for (;;) {
+		optional<int> o = g();
+		if (!o.present) break;
+		cout << o.value << endl;
+	}
+}
+
 int main() {
 	test_merge_insert_sort_2();
+	// test_generator();
 }
